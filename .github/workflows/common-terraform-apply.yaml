@@ -18,6 +18,7 @@ jobs:
       matrix:
         work_directory: [
             "terraform/common/sandbox/shared-vpc",
+            "terraform/common/sandbox/project-factory",
             # "terraform/common/sandbox/oidc",
           ]
     env:
@@ -26,6 +27,9 @@ jobs:
       TF_VAR_org_domain: "${{ secrets.ORG_DOMAIN }}"
       TF_VAR_pool_id: "${{ secrets.WIF_POOL_ID }}"
       TF_VAR_provider_id: "${{ secrets.WIF_PROVIDER_ID }}"
+      TF_VAR_org_id: "${{ secrets.ORG_ID }}"
+      TF_VAR_folder_id: "${{ secrets.SANDBOX_FOLDER_ID }}"
+      TF_VAR_billing_account: "${{ secrets.BILLING_ACCOUNT_ID }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
