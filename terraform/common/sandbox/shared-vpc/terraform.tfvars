@@ -7,7 +7,7 @@ firewall_rules = [
     ranges      = ["10.128.0.0/9"]
     allow = [
       {
-        protocol = "imcp"
+        protocol = "icmp"
         ports    = []
       },
       {
