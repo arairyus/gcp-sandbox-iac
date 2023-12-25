@@ -5,12 +5,14 @@ on:
       - main
     paths:
       - "terraform/common/sandbox/**"
-      - ".github/workflows/terraform.yaml"
-      - "terraform/.terraform_version"
+      - ".github/workflows/common-terraform*.yaml"
+      - "terraform/.terraform-version"
 
 permissions:
   id-token: write
   contents: read
+  issues: write
+  pull-requests: write
 
 jobs:
   terraform-common-sandbox:
@@ -60,5 +62,55 @@ jobs:
         run: terraform init -backend-config=default.tfbackend
         working-directory: ${{ matrix.work_directory }}
       - name: Terraform Plan
-        run: terraform plan -compact-warnings -lock=false
+        id: tf_plan
+        run: |
+          terraform plan -compact-warnings -detailed-exitcode -lock=false -no-color -out tf.tfplan
         working-directory: ${{ matrix.work_directory }}
+        continue-on-error: true
+      - name: Create Terraform plan output
+        id: tfplan_output
+        run: |
+          ERROR_MSG=""
+          if [[ ${{ steps.tf_plan.outputs.exitcode }} == 0 ]]; then
+            TITLE="## :white_check_mark: Terraform Plan succeeded"
+            TERRAFORM_PLAN=$(terraform show -no-color tf.tfplan)
+          elif [[ ${{ steps.tf_plan.outputs.exitcode }} == 1 ]]; then
+            TITLE="## :x: Terraform Plan failed"
+            TERRAFORM_PLAN="Terraform Plan Failed!"
+            ERROR_MSG="Please check the [Terraform Plan](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          else
+            TITLE="## :warning: Terraform Plan succeeded(change detected)"
+            TERRAFORM_PLAN=$(terraform show -no-color tf.tfplan)
+          fi
+          delimiter="$(openssl rand -hex 8)"
+          echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
+          echo "$TITLE" >> $GITHUB_OUTPUT
+          echo "work_directory: \`${{ matrix.work_directory }}\`" >> $GITHUB_OUTPUT
+          echo $ERROR_MSG >> $GITHUB_OUTPUT
+          echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo '```terraform' >> $GITHUB_OUTPUT
+          echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
+          echo '```' >> $GITHUB_OUTPUT
+          echo "</details>" >> $GITHUB_OUTPUT
+          echo "${delimiter}" >> $GITHUB_OUTPUT
+        working-directory: ${{ matrix.work_directory }}
+      - name: Create summary
+        id: create_summary
+        env:
+          SUMMARY: ${{ steps.tfplan_output.outputs.summary }}
+        run: |
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+      - name: Comment on PR
+        if: github.event.action != 'closed'
+        uses: actions/github-script@v7
+        env:
+          output_summary: ${{ steps.tfplan_output.outputs.summary }}
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: process.env.output_summary
+            })
