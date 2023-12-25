@@ -64,4 +64,7 @@ enabled_services = [
   "iam.googleapis.com",
   "compute.googleapis.com",
   "cloudbilling.googleapis.com",
+  "cloudresourcemanager.googleapis.com",
+  "iamcredentials.googleapis.com",
+  "sts.googleapis.com",
 ]

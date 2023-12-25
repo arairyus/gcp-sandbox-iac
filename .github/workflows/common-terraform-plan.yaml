@@ -33,13 +33,14 @@ jobs:
       TF_VAR_provider_id: "${{ secrets.WIF_PROVIDER_ID }}"
       TF_VAR_org_id: "${{ secrets.ORG_ID }}"
       TF_VAR_folder_id: "${{ secrets.SANDBOX_FOLDER_ID }}"
-      TF_VAR_billing_account: "${{ secrets.BILLING_ACCOUNT_ID }}"
+      TF_VAR_billing_account_id: "${{ secrets.BILLING_ACCOUNT_ID }}"
+      TF_VAR_tfstate_bucket: "${{ secrets.TFSTATE_STORAGE }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Get Terraform version
         run: |
-          echo "TERRAFORM_VERSION=$(cat ./terraform/.terraform_version)" >> $GITHUB_ENV
+          echo "TERRAFORM_VERSION=$(cat ./terraform/.terraform-version)" >> $GITHUB_ENV
       - name: Terraform Setup
         uses: hashicorp/setup-terraform@v3
         with:
@@ -48,6 +49,7 @@ jobs:
         with:
           project_id: "${{ secrets.COMMON_SANDBOX_PROJECT_ID }}"
           workload_identity_provider: "${{ secrets.WIF_PROVIDER }}"
+          # service_account: "${{ secrets.IMPERSONATE_SERVICE_ACCOUNT }}"
       - name: Create tfbackend
         run: |
           echo "bucket = \"${{ secrets.TFSTATE_STORAGE }}\"" >> default.tfbackend
@@ -58,5 +60,5 @@ jobs:
         run: terraform init -backend-config=default.tfbackend
         working-directory: ${{ matrix.work_directory }}
       - name: Terraform Plan
-        run: terraform plan -compact-warnings
+        run: terraform plan -compact-warnings -lock=false
         working-directory: ${{ matrix.work_directory }}
