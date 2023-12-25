@@ -36,3 +36,8 @@ variable "firewall_rules" {
   description = "The list of firewall rules"
   default     = []
 }
+
+variable "enabled_services" {
+  type        = list(string)
+  description = "The list of enabled services"
+}

@@ -8,7 +8,6 @@ terraform {
     }
   }
 }
-
 locals {
   subnets = [for i in range(var.subnet_count) : {
     subnet_name           = "sandbox-subnet-${format("%02d", i + 1)}"
@@ -18,12 +17,22 @@ locals {
     subnet_flow_logs      = false
   }]
 }
+
+resource "google_project_service" "service" {
+  for_each = toset(var.enabled_services)
+
+  project = var.project_id
+  service = each.value
+
+  disable_dependent_services = true
+}
+
 module "shared_vpc" {
   source  = "terraform-google-modules/network/google"
   version = "~> 5.2"
 
-  project_id   = var.project_id
-  network_name = "common-sandbox-shared-vpc"
+  project_id     = var.project_id
+  network_name   = "common-sandbox-shared-vpc"
   subnets        = local.subnets
   firewall_rules = var.firewall_rules
 }

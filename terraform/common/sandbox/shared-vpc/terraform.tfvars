@@ -59,3 +59,7 @@ firewall_rules = [
     }
   }
 ]
+
+enabled_services = [
+  "compute.googleapis.com",
+]
