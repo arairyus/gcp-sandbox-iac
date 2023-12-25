@@ -1,8 +1,5 @@
-name: Terraform common/sandbox CICD
+name: Terraform common/sandbox CI
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main

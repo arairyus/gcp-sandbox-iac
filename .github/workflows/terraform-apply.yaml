@@ -1,0 +1,54 @@
+name: Terraform common/sandbox CD
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-common-sandbox:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    environment:
+      name: sandbox
+    strategy:
+      matrix:
+        work_directory: [
+            "terraform/common/sandbox/shared-vpc",
+            # "terraform/common/sandbox/oidc",
+          ]
+    env:
+      TF_VAR_project_id: "${{ secrets.COMMON_SANDBOX_PROJECT_ID }}"
+      TF_VAR_impersonate_service_account: "${{ secrets.IMPERSONATE_SERVICE_ACCOUNT }}"
+      TF_VAR_org_domain: "${{ secrets.ORG_DOMAIN }}"
+      TF_VAR_pool_id: "${{ secrets.WIF_POOL_ID }}"
+      TF_VAR_provider_id: "${{ secrets.WIF_PROVIDER_ID }}"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get Terraform version
+        run: |
+          echo "TERRAFORM_VERSION=$(cat ./terraform/.terraform_version)" >> $GITHUB_ENV
+      - name: Terraform Setup
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "${{ env.TERRAFORM_VERSION }}"
+      - uses: "google-github-actions/auth@v2"
+        with:
+          project_id: "${{ secrets.COMMON_SANDBOX_PROJECT_ID }}"
+          workload_identity_provider: "${{ secrets.WIF_PROVIDER }}"
+      - name: Create tfbackend
+        run: |
+          echo "bucket = \"${{ secrets.TFSTATE_STORAGE }}\"" >> default.tfbackend
+          echo "impersonate_service_account = \"${{ secrets.IMPERSONATE_SERVICE_ACCOUNT }}\"" >> default.tfbackend
+          cat default.tfbackend
+        working-directory: ${{ matrix.work_directory }}
+      - name: Terraform Init
+        run: terraform init -backend-config=default.tfbackend
+        working-directory: ${{ matrix.work_directory }}
+      - name: Terraform Apply
+        run: terraform apply --auto-approve
+        working-directory: ${{ matrix.work_directory }}
