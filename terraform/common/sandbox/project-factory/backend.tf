@@ -1,5 +1,5 @@
 terraform {
   backend "gcs" {
-    prefix = "sandbox/project-factory"
+    prefix = "common/sandbox/project-factory"
   }
 }
