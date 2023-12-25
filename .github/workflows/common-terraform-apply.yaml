@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   terraform-common-sandbox:
-    name: Terraform Plan
+    name: Terraform Apply
     runs-on: ubuntu-latest
     environment:
       name: sandbox
@@ -29,13 +29,14 @@ jobs:
       TF_VAR_provider_id: "${{ secrets.WIF_PROVIDER_ID }}"
       TF_VAR_org_id: "${{ secrets.ORG_ID }}"
       TF_VAR_folder_id: "${{ secrets.SANDBOX_FOLDER_ID }}"
-      TF_VAR_billing_account: "${{ secrets.BILLING_ACCOUNT_ID }}"
+      TF_VAR_billing_account_id: "${{ secrets.BILLING_ACCOUNT_ID }}"
+      TF_VAR_tfstate_bucket: "${{ secrets.TFSTATE_STORAGE }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Get Terraform version
         run: |
-          echo "TERRAFORM_VERSION=$(cat ./terraform/.terraform_version)" >> $GITHUB_ENV
+          echo "TERRAFORM_VERSION=$(cat ./terraform/.terraform-version)" >> $GITHUB_ENV
       - name: Terraform Setup
         uses: hashicorp/setup-terraform@v3
         with:
@@ -44,6 +45,7 @@ jobs:
         with:
           project_id: "${{ secrets.COMMON_SANDBOX_PROJECT_ID }}"
           workload_identity_provider: "${{ secrets.WIF_PROVIDER }}"
+          # service_account: "${{ secrets.IMPERSONATE_SERVICE_ACCOUNT }}"
       - name: Create tfbackend
         run: |
           echo "bucket = \"${{ secrets.TFSTATE_STORAGE }}\"" >> default.tfbackend
