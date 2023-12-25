@@ -61,5 +61,7 @@ firewall_rules = [
 ]
 
 enabled_services = [
+  "iam.googleapis.com",
   "compute.googleapis.com",
+  "cloudbilling.googleapis.com",
 ]
