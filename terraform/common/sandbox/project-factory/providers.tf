@@ -19,3 +19,10 @@ provider "google" {
   access_token    = data.google_service_account_access_token.default.access_token
   request_timeout = "60s"
 }
+
+provider "google-beta" {
+  project         = var.project_id
+  region          = var.region
+  access_token    = data.google_service_account_access_token.default.access_token
+  request_timeout = "60s"
+}

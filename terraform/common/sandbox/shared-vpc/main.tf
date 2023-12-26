@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/google"
       version = "< 5.0.0"
     }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = "< 5.0.0"
+    }
   }
 }
 locals {
@@ -31,10 +35,10 @@ module "shared_vpc" {
   source  = "terraform-google-modules/network/google"
   version = "~> 5.2"
 
-  project_id     = var.project_id
-  network_name   = "common-sandbox-shared-vpc"
-  subnets        = local.subnets
-  firewall_rules = var.firewall_rules
+  project_id      = var.project_id
+  network_name    = "common-sandbox-shared-vpc"
+  subnets         = local.subnets
+  firewall_rules  = var.firewall_rules
   shared_vpc_host = true
 
   depends_on = [google_project_service.service]
