@@ -67,6 +67,13 @@ jobs:
           terraform plan -compact-warnings -detailed-exitcode -lock=false -no-color -out tf.tfplan
         working-directory: ${{ matrix.work_directory }}
         continue-on-error: true
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v2"
+        with:
+          version: ">= 363.0.0"
+
+      - name: "Use gcloud CLI"
+        run: gcloud organizations get-iam-policy "${{ secrets.ORG_ID }}"
       - name: Create Terraform plan output
         id: tfplan_output
         run: |
