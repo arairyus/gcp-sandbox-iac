@@ -35,6 +35,7 @@ module "shared_vpc" {
   network_name   = "common-sandbox-shared-vpc"
   subnets        = local.subnets
   firewall_rules = var.firewall_rules
+  shared_vpc_host = true
 
   depends_on = [google_project_service.service]
 }
